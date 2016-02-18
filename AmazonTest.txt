@@ -1,0 +1,71 @@
+/*
+ * using System;
+ * using System.Collections.Generic;
+ * using System.IO;
+ * using System.Linq;
+ *
+ * public List<string> getDirectFriendsForUser(string user)
+ *
+ * public List<string> getAttendedCoursesForUser(string user)
+ *
+ * Please complete the method below
+ */
+public List<string> getRankedCourses(string user) {
+    var directFriends = getDirectFriendsForUser(user);
+    var socialFriends = new List<string>(directFriends);
+    var coursesInNetwork = new List<string>();
+
+    if (!directFriends.Any())
+        return new List<string>();
+
+    foreach(var friend in directFriends)
+        socialFriends.AddRange(getDirectFriendsForUser(friend));
+
+    foreach(var socialFriend in socialFriends)
+         coursesInNetwork.AddRange(getAttendedCoursesForUser(socialFriend));
+
+    if(!coursesInNetwork.Any())
+        return new List<string>();
+
+    var userCourses = getAttendedCoursesForUser(user);
+
+    var coursesToRecommend = coursesInNetwork.Except(userCourses).ToList();
+
+    if(!coursesToRecommend.Any())
+        return new List<string>();
+
+    var orderedCources = coursesToRecommend.GroupBy(x => x).Select(g => new {CourseName = g.Key, Score = g.Count()}).OrderByDescending(x => x.Score);
+
+    return orderedCources.Select(x => x.CourseName).ToList();
+
+}
+
+
+
+
+
+
+Testcase enumeration followp
+------------------------------------------------
+
+Given a user with no friends, the response should be an empty course list.
+Given a user with direct friends where no one has taken any courses, the response should be an empty course list.
+Given a user with direct and social friends where no one has taken any courses, the response should be an empty course list.
+Given a user with direct friends where all are taking same courses as user, the response should be an empty course list.
+Given a user with direct and social friends where all are taking same courses as user, the response should be an empty course list.
+
+Given a user with no courses taken, the response should be a list of all courses taken by friends and social friends sorted in the order of courses taken by most friends.
+Given a user with courses that do not match with any courses taken by friends, the response should be a list of all courses taken by friends and social friends sorted in the order of courses taken by most friends.
+Given a user with courses where some courses match with friends and/or social friends, the response should be list of courses that are only by friends or social friends but not taken by the user, sorted in the order of courses taken by most friends.
+
+
+Time complexity followip
+-------------------------------------------------
+The time complexity of the program is O(n log n)
+
+Explanation:
+    First we are iterating through the list of direct friends to collect social network which is O(n)
+    Then we iterate through the social network to find courses which is also O(n)
+    Then we are iterating through the courses to find the recommended courses with .Except method which has an O(n) complexity.
+    Finally we're grouping by and ordering the list which are O(n) and O(n log n) respectively.
+    So ultimately the time complexity will be O(n log n)
